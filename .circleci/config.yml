@@ -26,11 +26,12 @@ jobs:
       - restore_cache:
           keys: [backend-deploy]
       - run:
-          name: Back-end build
+          name: Build back-end
           command: |
             cd backend
             npm install
             npm run build
+            exit 1
       - save_cache:
           paths: [backend/node_modules]
           key: backend-deploy
@@ -57,7 +58,7 @@ jobs:
       - restore_cache:
           keys: [backend-deploy]
       - run:
-          name: back-end Unit Test
+          name: Back-end Unit Test
           command: |
             cd backend
             npm install
