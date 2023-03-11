@@ -48,13 +48,15 @@ commands:
             sudo ./aws/install
 
   install-nodejs:
-    description: Install Node.js 16
+    description: Install Node.js
     steps:
       - run:
-          name: Install Node.js 16
+          name: Install Node.js
           command: |
-            curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-            sudo apt install -y nodejs
+            #curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+            #sudo apt install -y nodejs
+            nvm install node
 
   install-ansible:
     description: Install Ansible
@@ -159,7 +161,7 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: cimg/base:stable
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - install-awscli
@@ -196,7 +198,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: cimg/base:stable
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - install-awscli
@@ -223,8 +225,8 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            #npm install
-            sudo npm install -g npm@latest
+            npm install
+            #sudo npm install -g npm@latest
             npm run migrations > migrations_dump.txt
      
       - run:
@@ -239,7 +241,7 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: cimg/base:stable
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - install-awscli
