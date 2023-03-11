@@ -33,5 +33,5 @@ Resources:
       # Ubuntu 18 or higher works fine
       ImageId: ami-0557a15b87f6559cf
       Tags:
-        - Key: Name
+        - Key: udapeople
           Value: !Sub backend-${ID}
