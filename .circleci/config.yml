@@ -215,7 +215,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: cimg/base:stable
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - install-awscli
@@ -223,7 +223,8 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            npm install
+            #npm install
+            sudo npm install -g npm@latest
             npm run migrations > migrations_dump.txt
      
       - run:
