@@ -204,7 +204,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/base:stable
     steps:
       - checkout
       - install-awscli
@@ -213,11 +213,6 @@ jobs:
           fingerprints: ["6c:5c:0c:b5:73:b9:8e:ec:33:8c:96:87:f2:07:08:68"]
       - attach_workspace:
           at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-              apk add --update tar gzip ansible
-              pip install awscli
       - run:
           name: Configure Server
           command: |
