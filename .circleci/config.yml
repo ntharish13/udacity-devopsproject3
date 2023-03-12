@@ -179,7 +179,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" --region=us-east-2 \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" --region=us-east-1 \
               --tags project=udapeople
       - run:
           name: Add back-end ip to ansible inventory
@@ -217,7 +217,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: cimg/node:13.8.0
+      - image: circleci/node:14.18.1
     steps:
       - checkout
       - install-awscli
@@ -226,6 +226,7 @@ jobs:
           command: |
             cd backend
             npm install
+            npm audit fix --audit-level=critical --force
             npm run migrations > migrations_dump.txt
       - run:
           name: Send migration status to kvdb.io
