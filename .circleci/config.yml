@@ -338,11 +338,11 @@ jobs:
       - run:
           name: Backend smoke test
           command: |
-            BACKEND_IP=$(aws ec2 describe-instances \
+            BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
             --filters "Name=tag:project, Values=backend-udapeople" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
-            URL="http://${BACKEND_IP}:3030/api/status"
+            URL="http://${BACKEND_PUBLIC_IP}:3030/api/status"
             echo $URL
             curl $URL
       - run:
