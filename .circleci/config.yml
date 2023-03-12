@@ -4,6 +4,7 @@ orbs:
   aws-cli: circleci/aws-cli@3.1.1
 
 commands:
+
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
@@ -353,7 +354,25 @@ jobs:
             else
               exit 1
             fi
-            
+
+      - destroy-environment
+      - revert-migrations
+
+  cloudfront-update:
+    docker:
+      - image: circleci/node:14.18.1
+    steps:
+      - checkout
+      - install_awscli
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+             --template-file .circleci/files/cloudfront.yml \
+             --stack-name InitialStack \
+             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+             --tags project=udapeople
+          echo Current WorkFlowID: "${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-environment
       - revert-migrations
 
