@@ -374,7 +374,7 @@ jobs:
       - image: circleci/node:14.18.1
     steps:
       - checkout
-      - install_awscli
+      - install-awscli
       - run:
           name: Update cloudfront distribution
           command: |
