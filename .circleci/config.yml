@@ -277,6 +277,53 @@ jobs:
       - destroy-environment
       - revert-migrations
 
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["6c:5c:0c:b5:73:b9:8e:ec:33:8c:96:87:f2:07:08:68"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            # install the dependencies needed for your playbook
+            apk add --update openssh-client
+            apk add --update tar gzip ansible nodejs npm curl
+            apk update pip3
+            pip3 install awscli
+      - run:
+          name: taring the backend file
+          command: |
+            touch .env
+            echo ENVIROMENT=production > .env
+            echo NODE_ENV=production >> .env
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> .env
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> .env
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> .env
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> .env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> .env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> .env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> .env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> .env
+            ls -lart
+            cat .env
+            mv .env backend
+            tar -C backend -czvf artifact.tar.gz .
+      - store_artifacts:
+          path: ~/project/artifact.tar.gz
+      - run:  
+          name: invoke ansible script
+          command: |
+            cd .circleci/ansible
+            cat ~/project/.circleci/ansible/inventory.txt
+            ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ~/project/.circleci/ansible/inventory.txt deploy-backend.yml       
+      - destroy-environment
+      - revert-migrations
+
 workflows:
   default:
     jobs:
@@ -300,4 +347,6 @@ workflows:
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
           requires: [run-migrations]
