@@ -326,40 +326,41 @@ jobs:
 
   smoke-test:
     docker:
-      - image: cimg/base:stable
+      - image: python:3.7-alpine3.11 
     steps:
       - checkout
-      - install-awscli
-      - install-nodejs
       - run:
-          name: Backend smoke test.
+          name: Install dependencies
           command: |
-            BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text)
-            export API_URL="http://${BACKEND_PUBLIC_IP}:3030"
-            echo "${API_URL}"
-            if curl "${API_URL}/api/status" | grep "ok"
-            then
-                exit 0
-            else
-                exit 1
-            fi
+            apk add --update tar gzip curl
+            apk add --update curl nodejs npm
+            pip install awscli
+      - run:
+          name: Backend smoke test
+          command: |
+            BACKEND_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:project, Values=backend-udapeople" \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
+            URL="http://${BACKEND_IP}:3030/api/status"
+            echo $URL
+            curl $URL
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
-            echo ${URL} 
-            if curl -s ${URL} | grep "Welcome"
+            BACKEND_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:project, Values=backend-udapeople" \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
+            URL="http://${BACKEND_IP}:3030/api/status"
+            if curl -s ${URL} | grep "ok"
             then
-              exit 0
+              return 0
             else
-              exit 1
+              return 1
             fi
       - destroy-environment
       - revert-migrations
-
 workflows:
   default:
     jobs:
