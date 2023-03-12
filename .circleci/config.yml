@@ -327,14 +327,11 @@ jobs:
 
   smoke-test:
     docker:
-      - image: python:3.10-alpine3.16 
+      - image: cimg/base:stable
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update --no-cache tar gzip nodejs npm curl aws-cli
-
+      - install-awscli
+      - install-nodejs
       - run:
           name: Get backend url and Backend smoke test.
           command: |
