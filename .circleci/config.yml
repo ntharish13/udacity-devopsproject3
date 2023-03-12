@@ -165,10 +165,12 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - install-awscli
+      - run:
+          command: |
+            yum -y install tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -202,7 +204,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: cimg/base:stable
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - install-awscli
@@ -211,6 +213,11 @@ jobs:
           fingerprints: ["6c:5c:0c:b5:73:b9:8e:ec:33:8c:96:87:f2:07:08:68"]
       - attach_workspace:
           at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+              apk add --update tar gzip ansible
+              pip install awscli
       - run:
           name: Configure Server
           command: |
@@ -242,13 +249,17 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - install-awscli
-      - install-nodejs
       - restore_cache:
          keys: [frontend-deploy]
+      - run:
+          name: Install dependencies
+          command: |
+            yum install -y tar gzip curl
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install -y nodejs  
       - run:
           name: Install dependencies
           command: |
@@ -267,6 +278,7 @@ jobs:
           name: Deploy frontend objects
           command: |
             cd frontend
+            npm install
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
