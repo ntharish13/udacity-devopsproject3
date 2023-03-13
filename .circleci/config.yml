@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  aws-cli: circleci/aws-cli@3.1.1
-
 commands:
 
   destroy-environment:
@@ -254,11 +251,6 @@ jobs:
             cd frontend
             npm install
       - run:
-          name: Install dependencies
-          command: |
-            cd frontend
-            npm install
-      - run:
           name: Get backend url
           command: |
             BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
@@ -271,9 +263,9 @@ jobs:
           name: Deploy frontend objects
           command: |
             cd frontend
-            npm install
+            #npm install
             npm run build
-            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            #tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment
       - revert-migrations
@@ -291,8 +283,10 @@ jobs:
           name: Install dependencies
           command: |
             # install the dependencies needed for your playbook
+            apk add --update openssh-client
             apk add --update --no-cache ansible tar gzip nodejs npm curl
-            pip3 install --upgrade pip
+            #pip3 install --upgrade pip
+            apk update pip3
             pip3 install awscli
       - run:
           name: taring the backend file
