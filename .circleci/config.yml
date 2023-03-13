@@ -431,8 +431,8 @@
             root: ~/
             paths:
               - OldWorkflowID.txt
-        - destroy-environment
-        - revert-migrations
+        #- destroy-environment
+        #- revert-migrations
 
 
     cleanup:
