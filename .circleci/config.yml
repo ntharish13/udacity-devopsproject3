@@ -381,8 +381,8 @@
                 --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --query 'Reservations[*].Instances[*].PublicIpAddress' \
                 --output text)
-              export API_URL=http://${BACKEND_PUBLIC_IP}:3030
-              echo "${API_URL}"
+              export API_URL=http://44.197.179.136:3030
+              echo $API_URL
               if curl "${API_URL}/api/status" | grep "ok"
               then
                 exit 0
@@ -392,7 +392,7 @@
         - run:
             name: Frontend smoke test
             command: |
-              URL=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com/
+              URL=http://udapeople-00bb685.s3-website-us-east-1.amazonaws.com
               echo ${URL} 
               if curl -s ${URL} | grep "Welcome"
               then
