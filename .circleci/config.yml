@@ -317,31 +317,55 @@
 
     deploy-backend:
       docker:
-        # Docker image here that supports AWS CLI
-        - image: python:3.9.0-alpine
+        - image: python:3.11-rc-alpine
       steps:
         - checkout
         - add_ssh_keys:
             fingerprints: ["6c:5c:0c:b5:73:b9:8e:ec:33:8c:96:87:f2:07:08:68"]
         - attach_workspace:
-            at: .
+            at: ~/   
         - run:
             name: Install dependencies
-            working_directory: /tmp
             command: |
-              apk add --update ansible curl rsync openssh nodejs npm
-              ansible --version
-              pip install awscli
-              aws --version
+              apk add --update tar gzip ansible nodejs npm curl
+              pip3 install --upgrade pip
+              pip3 install awscli
+        - run: 
+            name: Save all db varibles in env file 
+            command: |
+              ls
+              cd backend
+              echo ENVIRONMENT=production >> .env
+              echo NODE_ENV=production >> .env
+              echo TYPEORM_HOST=$TYPEORM_HOST >> .env
+              echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> .env
+              echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> .env
+              echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> .env
+              echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> .env
+              echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> .env
+              echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
+              echo TYPEORM_PORT=$TYPEORM_PORT >> .env
+              echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> .env
+              cat .env
+              ls
+        - run:
+            name: Package backend 
+            command: |
+              cd backend
+              npm i
+              npm run build
+              cd ..
+              tar -C backend -czvf artifact.tar.gz .
         - run:
             name: Deploy backend
-            #working_directory: ./.circleci/ansible
             command: |
               cd .circleci/ansible
-              cat inventory.txt
-              ansible-playbook -i inventory.txt deploy-backend.yaml -vv
-        #- destroy_environment
-        ##- revert-migrations
+              echo "Contents of the inventory.txt file"
+              cat inventory.txt            
+              ansible-playbook -i inventory.txt deploy-backend.yml
+        #- destroy-environment
+        #- revert-migrations
+
 
     smoke-test:
       docker:
