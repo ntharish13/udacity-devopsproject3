@@ -280,7 +280,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.10-alpine3.16
+      - image: python:3.11-rc-alpine
     steps:
       - checkout
       - add_ssh_keys:
@@ -291,11 +291,9 @@ jobs:
           name: Install dependencies
           command: |
             # install the dependencies needed for your playbook
-            apk add --update --no-cache ansible tar gzip nodejs npm curl aws-cli
-            #apk add --update openssh-client
-            #apk add --update tar gzip ansible nodejs npm curl
-            #apk update pip3
-            #pip3 install awscli
+            apk add --update --no-cache ansible tar gzip nodejs npm curl
+            pip3 install --upgrade pip
+            pip3 install awscli
       - run:
           name: taring the backend file
           command: |
@@ -328,18 +326,15 @@ jobs:
 
   smoke-test:
     docker:
-      - image: python:3.10-alpine3.16 
+      - image: cimg/base:stable
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update --no-cache tar gzip nodejs npm curl aws-cli
-
+      - install-awscli
+      - install-nodejs
       - run:
           name: Backend smoke test.
           command: |
-            export BACKEND_PUBLIC_IP=$(aws --region us-west-2 ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicDnsName' --output text)
+            export BACKEND_PUBLIC_IP=$(aws --region us-east-1 ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicDnsName' --output text)
             export API_URL="http://${BACKEND_PUBLIC_IP}:3030"
             echo "${API_URL}"  #   curl -s ${API_URL}/api/status -v 
             if curl -s ${API_URL}/api/status | grep "ok"
