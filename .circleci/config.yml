@@ -369,34 +369,30 @@
 
     smoke-test:
       docker:
-        # Lightweight Docker image 
-        - image: amazon/aws-cli
+        - image: cimg/base:stable
       steps:
-        # Checkout code from git
         - checkout
+        - install-awscli
+        - install-nodejs
         - run:
-            name: Install dependencies
+            name: Backend smoke test
             command: |
-              # your code here
-              yum install -y curl
-        - run:
-            name: Backend Smoke Test
-            command: |
-              # your code here
-              export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:project,Values=udapeople" --output text)
-              export API_URL="http://${BACKEND_IP}:3030"
-              sleep 120
+              BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
+                --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --query 'Reservations[*].Instances[*].PublicIpAddress' \
+                --output text)
+              export API_URL=http://${BACKEND_PUBLIC_IP}:3030
               echo "${API_URL}"
-              if curl -s "${API_URL}/api/status" | grep "ok"
+              if curl "${API_URL}/api/status" | grep "ok"
               then
                 exit 0
               else
                 exit 1
               fi
         - run:
-            name: Frontend smoke test.
+            name: Frontend smoke test
             command: |
-              URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com/#/employees"            
+              URL=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com/
               echo ${URL} 
               if curl -s ${URL} | grep "Welcome"
               then
@@ -406,6 +402,7 @@
               fi
         - destroy-environment
         - revert-migrations
+        - notify_on_failure
 
     cloudfront-update:
         docker:
