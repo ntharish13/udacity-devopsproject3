@@ -335,9 +335,9 @@
               aws --version
         - run:
             name: Deploy backend
-            working_directory: ./.circleci/ansible
+            #working_directory: ./.circleci/ansible
             command: |
-              #cd .circleci/ansible
+              cd .circleci/ansible
               cat inventory
               ansible-playbook -i inventory.txt deploy-backend.yaml -vv
         #- destroy_environment
