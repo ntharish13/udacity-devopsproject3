@@ -337,8 +337,9 @@
             name: Deploy backend
             working_directory: ./.circleci/ansible
             command: |
+              #cd .circleci/ansible
               cat inventory
-              ansible-playbook -i inventory deploy-backend.yaml -vv
+              ansible-playbook -i inventory.txt deploy-backend.yaml -vv
         #- destroy_environment
         ##- revert-migrations
 
