@@ -189,7 +189,7 @@
             root: ~/
             paths:
               - project/.circleci/ansible/inventory.txt
-        - destroy_environment
+        #- destroy_environment
 
     configure-infrastructure:
       docker:
@@ -431,7 +431,7 @@
             requires: [test-frontend]
         - scan-backend:
             requires: [test-backend]
-        #- deploy-infrastructure:
+        - deploy-infrastructure
             #requires: [test-frontend, test-backend, scan-frontend, scan-backend]
             #filters:
              #branches:
