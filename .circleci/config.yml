@@ -298,7 +298,7 @@
               export API_URL="http://${BACKEND_IP}:3030"
               echo "${API_URL}" >> frontend/.env
               cat frontend/.env
-              export API_URL=http://44.211.92.1483030
+              export API_URL=http://44.211.92.148:3030
               echo $API_URL
         - run:
             name: Deploy frontend objects
