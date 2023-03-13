@@ -36,7 +36,35 @@
               npm install
               npm run migration:revert
               fi
-            
+    install-awscli:
+      description: Install AWS CLI v2
+      steps:
+        - run:
+            name: Install AWS CLI v2
+            command: |
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip awscliv2.zip
+              sudo ./aws/install
+
+    install-nodejs:
+      description: Install Node.js
+      steps:
+        - run:
+            name: Install Node.js 13
+            command: |
+              curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+              sudo apt install -y nodejs
+
+    install-ansible:
+      description: Install Ansible
+      steps:
+        - run:
+            name: Install Ansible
+            command: |
+              sudo apt update
+              sudo apt install software-properties-common -y
+              sudo add-apt-repository --yes --update ppa:ansible/ansible
+              sudo apt install ansible -y
   jobs:
     build-frontend:
       docker:
@@ -252,32 +280,33 @@
 
     deploy-frontend:
       docker:
-        # Docker image here that supports AWS CLI
-        - image: amazon/aws-cli
+        - image: cimg/base:stable
       steps:
-        # Checkout code from git
         - checkout
+        - install-awscli
+        - install-nodejs
+        - restore_cache:
+          keys: [frontend-build]
         - run:
             name: Install dependencies
             command: |
-              yum -y install python3
-              curl -sL https://rpm.nodesource.com/setup_16.x | bash -
-              yum -y install nodejs tar gzip
+              cd frontend
+              npm install
         - run:
             name: Get backend url
             command: |
-              export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:project,Values=udapeople" --output text)
-              export API_URL="http://${BACKEND_IP}:3030"
-              echo "${API_URL}" >> frontend/.env
+              BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
+                --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+                --output text)
+              echo "API_URL=http://${BACKEND_PUBLIC_IP}:3030" >> frontend/.env
               cat frontend/.env
-              export API_URL=http://44.211.92.148:3030
-              echo $API_URL
         - run:
             name: Deploy frontend objects
             command: |
               cd frontend
               npm run build
-              aws s3 cp dist s3://udapeople-00bb685 --recursive
+              aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
         #- destroy-environment
         #- revert-migrations
 
