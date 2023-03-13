@@ -1,4 +1,9 @@
 ---
+- name: "upgrade packages."
+  become: true
+  apt:
+    upgrade: "yes"
+
 - name: "install dependencies."
   become: true
   apt:
@@ -14,31 +19,33 @@
     production: yes
     state: present
 
-- name: Creates directory
+- name: "Create Directory"
+  become: true
   file:
-    path: ~/backend
+    path: /home/ubuntu/Udapeople
     state: directory
-    mode: 0755
 
-- name: Extract artifact.tar.gz into ~/backend
-  ansible.builtin.unarchive:
-    src: ~/project/artifact.tar.gz
-    dest: ~/backend
+- name: "Copy Artifact"
+  become: true
+  copy:
+    src: "files/artifact.tar.gz"
+    dest: /home/ubuntu/Udapeople/artifact.tar.gz
 
-- name: install npm & switch to 13.8.0 to build
+- name: "Extract Artifact"
   become: true
   shell: |
-    cd /home/ubuntu/backend
-    npm install -g n
-    n 13.8.0
-    chown -R ubuntu:ubuntu /home/ubuntu/backend
-- name: build
-  shell: |
-    cd /home/ubuntu/backend
+    cd /home/ubuntu/Udapeople
+    tar -vxf artifact.tar.gz
+    rm -f artifact.tar.gz
+- name: "Install NPM"
+  become: true
+  shell:
+    cd /home/ubuntu/Udapeople
     npm install
-    npm run build
-    
-- name: start pm2
-  shell: |
-    cd /home/ubuntu/backend    
-    pm2 start npm --name backend -- start
+
+- name: "Start Application"
+  become: true
+  shell:
+    cd ~/Udapeople
+    pm2 start npm -- run start
+    sleep 60
