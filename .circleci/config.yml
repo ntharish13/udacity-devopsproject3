@@ -37,103 +37,92 @@
   jobs:
     build-frontend:
       docker:
-        - image: circleci/node:14.18.1
+        - image: circleci/node:13.8.0
       steps:
         - checkout
         - restore_cache:
-            keys: [frontend-build]
+            keys: [frontend-deploy]
         - run:
-            name: frontend build
+            name: Build front-end
             command: |
               cd frontend
-              npm i
+              npm install
               npm run build
         - save_cache:
             paths: [frontend/node_modules]
-            key: frontend-build
-        
+            key: frontend-deploy
+
     build-backend:
       docker:
         - image: circleci/node:13.8.0
       steps:
         - checkout
         - restore_cache:
-            keys: [backend-build]
+            keys: [backend-deploy]
         - run:
             name: Back-end build
             command: |
               cd backend
-              npm i
-              npm run build          
+              npm install
+              npm run build
         - save_cache:
             paths: [backend/node_modules]
-            key: backend-build
+            key: backend-deploy
 
     test-frontend:
       docker:
-        - image: circleci/node:14.18.1
+        - image: circleci/node:13.8.0
       steps:
-        # Checkout code from git
-        - checkout 
+        - checkout
         - restore_cache:
-            keys: [frontend-test] 
-        # Your job code here
+            keys: [frontend-deploy]
         - run:
-            name: frontend test
+            name: Front-end Unit Test
             command: |
               cd frontend
-              npm i
+              npm install
               npm run test
-              npm audit fix
 
     test-backend:
       docker:
-        - image: circleci/node:14.18.1
+        - image: circleci/node:13.8.0
       steps:
-        # Checkout code from git
-        - checkout  
-        - restore_cache:
-            keys: [backend-test]
-        # Your job code here
-        - run:
-            name: backend test
-            command: |
-              cd backend
-              npm i
-              npm run test
-              npm audit fix
-              npm audit fix --force  
-              
-    scan-frontend:
-      docker:
-        - image: circleci/node:14.18.1
-      steps:
-        # Checkout code from git
         - checkout
         - restore_cache:
-            keys: [frontend-scan] # Restore from cache
-        # Your job code here
+            keys: [backend-deploy]
         - run:
-            name: frontend audit
+            name: Back-end Unit Test
             command: |
               cd backend
-              npm i
-              npm audit fix --audit-level=critical 
+              npm install
+              npm run test
+  
+    scan-frontend:
+      docker:
+        - image: circleci/node:13.8.0
+      steps:
+        - checkout
+        - restore_cache:
+            keys: [frontend-deploy]
+        - run:
+            name: Scan front-end
+            command: |
+              cd frontend
+              npm install
+              npm audit fix --audit-level=critical
 
     scan-backend:
       docker:
-        - image: circleci/node:14.18.1
+        - image: circleci/node:13.8.0
       steps:
-        # Checkout code from git
         - checkout
         - restore_cache:
-            keys: [backend-scan]
-        # Your job code here
+            keys: [backend-deploy]
         - run:
-            name: backend audit 
+            name: Scan bacnk-end
             command: |
               cd backend
-              npm i
+              npm install
               npm audit fix --audit-level=critical
 
     deploy-infrastructure:
@@ -165,10 +154,10 @@
                 --filters "Name=tag:project,Values=udapeople" \
                 --output text >> .circleci/ansible/inventory.txt
                 cat .circleci/ansible/inventory.txt
-        #- persist_to_workspace:
-        #    root: ~/
-        #    paths:
-        #        - .circleci/ansible/inventory.txt
+        - persist_to_workspace:
+            root: ~/
+            paths:
+              - project/.circleci/ansible/inventory.txt
         - destroy_environment
 
     configure-infrastructure:
