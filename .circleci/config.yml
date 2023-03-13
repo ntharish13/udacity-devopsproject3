@@ -51,9 +51,6 @@
         - save_cache:
             paths: [frontend/node_modules]
             key: frontend-build
-        - slack/notify:
-            event: fail
-            template: basic_fail_1
         
     build-backend:
       docker:
@@ -71,10 +68,7 @@
         - save_cache:
             paths: [backend/node_modules]
             key: backend-build
-        - slack/notify:
-            event: fail
-            template: basic_fail_1
-    
+
     test-frontend:
       docker:
         - image: circleci/node:14.18.1
@@ -91,9 +85,7 @@
               npm i
               npm run test
               npm audit fix
-        - slack/notify:
-            event: fail
-            template: basic_fail_1
+
     test-backend:
       docker:
         - image: circleci/node:14.18.1
@@ -111,9 +103,6 @@
               npm run test
               npm audit fix
               npm audit fix --force  
-        - slack/notify:
-            event: fail
-            template: basic_fail_1
               
     scan-frontend:
       docker:
@@ -130,9 +119,6 @@
               cd backend
               npm i
               npm audit fix --audit-level=critical 
-        - slack/notify:
-            event: fail
-            template: basic_fail_1
 
     scan-backend:
       docker:
@@ -149,10 +135,7 @@
               cd backend
               npm i
               npm audit fix --audit-level=critical
-        - slack/notify:
-            event: fail
-            template: basic_fail_1
-    
+
     deploy-infrastructure:
       docker:
         - image:  amazon/aws-cli
@@ -187,9 +170,7 @@
         #    paths:
         #        - .circleci/ansible/inventory.txt
         - destroy_environment
-        - slack/notify:
-            event: fail
-            template: basic_fail_1  
+
     configure-infrastructure:
       docker:
         - image: python:3.11-rc-alpine
@@ -275,6 +256,7 @@
               aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
         - destroy-environment
         - revert-migrations
+
     deploy-backend:
       docker:
         - image: python:3.11-rc-alpine
