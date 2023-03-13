@@ -1,51 +1,39 @@
 ---
-- name: "upgrade packages."
-  become: true
-  apt:
-    upgrade: "yes"
+  - name: "show remote environment"
+    shell: env
 
-- name: "install dependencies."
-  become: true
-  apt:
-    name: ["nodejs", "npm"]
-    state: latest
-    update_cache: yes
+  - name: "copy backend binaries"
+    become: yes
+    synchronize:
+      src: ../../backend/dist
+      dest: /home/ubuntu/uda_app
+      recursive: true
 
-- name: "install pm2"
-  become: true
-  npm:
-    name: pm2
-    global: yes
-    production: yes
-    state: present
+  - name: "copy node_modules"
+    become: yes
+    synchronize:
+      src: ../../backend/node_modules
+      dest: /home/ubuntu/uda_app
+      recursive: true
 
-- name: "Create Directory"
-  become: true
-  file:
-    path: /home/ubuntu/Udapeople
-    state: directory
+  - name: "delete anything that might already be running"
+    become: true
+    command: pm2 delete all
+    ignore_errors: true
 
-- name: "Copy Artifact"
-  become: true
-  copy:
-    src: "files/artifact.tar.gz"
-    dest: /home/ubuntu/Udapeople/artifact.tar.gz
-
-- name: "Extract Artifact"
-  become: true
-  shell: |
-    cd /home/ubuntu/Udapeople
-    tar -vxf artifact.tar.gz
-    rm -f artifact.tar.gz
-- name: "Install NPM"
-  become: true
-  shell:
-    cd /home/ubuntu/Udapeople
-    npm install
-
-- name: "Start Application"
-  become: true
-  shell:
-    cd ~/Udapeople
-    pm2 start npm -- run start
-    sleep 60
+  - name: "start server"
+    become: true
+    command: pm2 start -f ./main.js
+    args:
+      chdir: /home/ubuntu/uda_app/dist
+    environment:
+     ENVIRONMENT: production
+     TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
+     TYPEORM_MIGRATIONS_DIR: "./migrations"
+     TYPEORM_MIGRATIONS: "./migrations/*.js"
+     TYPEORM_ENTITIES: "./modules/domain/**/*.entity.js"
+     TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST') }}"
+     TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT') }}"
+     TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME') }}"
+     TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD') }}"
+     TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE') }}"

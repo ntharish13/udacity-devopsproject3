@@ -317,45 +317,28 @@
 
     deploy-backend:
       docker:
-        - image: python:3.11-rc-alpine
-      steps:      
-        - checkout       
+        # Docker image here that supports AWS CLI
+        - image: python:3.9.0-alpine
+      steps:
+        - checkout
         - add_ssh_keys:
             fingerprints: ["6c:5c:0c:b5:73:b9:8e:ec:33:8c:96:87:f2:07:08:68"]
         - attach_workspace:
-            at: ~/      
+            at: .
         - run:
             name: Install dependencies
+            working_directory: /tmp
             command: |
-              apk add --update tar gzip ansible nodejs npm curl
-              pip3 install --upgrade pip
-              pip3 install awscli
-       
+              apk add --update ansible curl rsync openssh nodejs npm
+              ansible --version
+              pip install awscli
+              aws --version
         - run:
             name: Deploy backend
+            working_directory: ./.circleci/ansible
             command: |
-              cd backend
-              npm i
-              npm run build
-              echo ENVIRONMENT=production > ".env"
-              echo TYPEORM_CONNECTION=postgres >> ".env"
-              echo TYPEORM_ENTITIES=./src/modules/domain/*/*/*.entity.ts >> ".env"
-              echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> ".env"
-              echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> ".env"
-              echo NODE_ENV=production >> ".env"
-              echo TYPEORM_HOST=$TYPEORM_HOST >> ".env"
-              echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
-              echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
-              echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
-              echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
-              cp package* ./dist
-              cd ..
-              tar -C backend -czvf artifact.tar.gz .
-              cp artifact.tar.gz .circleci/ansible/roles/deploy/files/
-              cd .circleci/ansible
-              echo "Contents  of the inventory.txt file is -------"
-              cat inventory.txt
-              ansible-playbook -i inventory.txt deploy-backend.yml
+              cat inventory
+              ansible-playbook -i inventory deploy-backend.yaml -vv
         #- destroy_environment
         ##- revert-migrations
 
