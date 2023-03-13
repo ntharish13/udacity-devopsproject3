@@ -278,8 +278,8 @@
               cd frontend
               npm run build
               aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-        - destroy-environment
-        - revert-migrations
+        #- destroy-environment
+        #- revert-migrations
 
     deploy-backend:
       docker:
@@ -442,9 +442,9 @@
                 #only: [devuda3]
         #- configure-infrastructure
             #requires: [deploy-infrastructure]
-        - run-migrations
+        #- run-migrations
             #requires: [configure-infrastructure]
-        #- deploy-frontend
+        - deploy-frontend
             #requires: [run-migrations]
         #- deploy-backend:
             #requires: [run-migrations]
