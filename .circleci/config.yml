@@ -298,7 +298,7 @@
               export API_URL="http://${BACKEND_IP}:3030"
               echo "${API_URL}" >> frontend/.env
               cat frontend/.env
-              export API_URL=http://44.211.92.148:3030
+              export API_URL=http://35.170.69.213:3030
               echo $API_URL
         - run:
             name: Deploy frontend objects
@@ -306,7 +306,7 @@
               cd frontend
               ls -la
               cat .env
-              export API_URL=http://44.211.92.148:3030
+              export API_URL=http://35.170.69.213:3030
               echo $API_URL
               npm install      
               npm run build
@@ -489,7 +489,7 @@
                 #only: [devuda3]
         #- configure-infrastructure
             #requires: [deploy-infrastructure]
-        #- run-migrations
+        - run-migrations
             #requires: [configure-infrastructure]
         #- deploy-frontend
             #requires: [run-migrations]
