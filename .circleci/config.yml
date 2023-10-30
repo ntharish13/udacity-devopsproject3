@@ -474,7 +474,7 @@
   workflows:
     udapeople_project:
       jobs:
-        #- build-frontend          
+        - build-frontend          
         #- build-backend:            
            #requires: [build-frontend]
         #- test-frontend:
